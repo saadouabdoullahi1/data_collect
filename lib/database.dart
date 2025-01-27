@@ -11,7 +11,7 @@ LazyDatabase _openConnection() {
   return LazyDatabase(
     () async {
       final dbFolder = await getApplicationDocumentsDirectory();
-      final file = File(p.join(dbFolder.path, 'etresor_db.sqlite'));
+      final file = File(p.join(dbFolder.path, 'database.sqlite'));
       return NativeDatabase(file);
     },
   );
@@ -24,7 +24,11 @@ class Database extends _$Database {
   @override
   int get schemaVersion => 2;
 
-Future<List<FormData>> getForms()async{
- return await select(form).get();
-}
+  Future<Stream<List<FormData>>> getForms() async {
+    return select(form).watch();
+  }
+
+  Future<int> insertForm(FormCompanion entity) async {
+    return await into(form).insert(entity);
+  }
 }

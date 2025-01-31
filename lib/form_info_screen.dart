@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:data_collect/database.dart' as db;
+import 'package:data_collect/edit_info_form.dart';
 import 'package:flutter/material.dart';
 
 class FormInfoScreen extends StatefulWidget {
@@ -39,10 +40,10 @@ class _FormInfoScreenState extends State<FormInfoScreen> {
                       borderRadius: BorderRadius.circular(8)),
                   child: Padding(
                     padding: EdgeInsets.all(4),
-                    child: Image.file(
+                    child:(!(form.urlImage==null))? Image.file(
                       File(form.urlImage!),
                       width: 120,
-                    ),
+                    ):Icon(Icons.person,size: 100,),
                   ),
                 ),
               ),
@@ -57,7 +58,13 @@ class _FormInfoScreenState extends State<FormInfoScreen> {
                         side: WidgetStatePropertyAll(BorderSide(
                             color:
                                 Theme.of(context).colorScheme.inversePrimary))),
-                    onPressed: () {},
+                    onPressed: () {
+                      Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder: (ctx) => EditInfoForm(form: form),
+                        ),
+                      );
+                    },
                     child: Text(
                       'Modifier',
                       style: Theme.of(context).textTheme.titleMedium!.copyWith(
@@ -132,7 +139,7 @@ class _FormInfoScreenState extends State<FormInfoScreen> {
                     style: Theme.of(context).textTheme.titleMedium,
                   ),
                   Text(
-                    (form.sexe == 0) ? 'Féminin' : 'Masculin',
+                    (form.sexe == 'F') ? 'Féminin' : 'Masculin',
                     style: Theme.of(context).textTheme.titleMedium,
                   ),
                 ]),
@@ -162,26 +169,33 @@ class _FormInfoScreenState extends State<FormInfoScreen> {
                     style: Theme.of(context).textTheme.titleMedium,
                   ),
                 ]),
-              ]),
-              Row(
-                children: [
+                TableRow(children: [
+                  
                   Text(
-                    'Nombre de personnes à charge',
+                    "Type produit",
                     style: Theme.of(context)
                         .textTheme
                         .labelLarge!
                         .copyWith(color: Colors.grey),
-                  )
-                ],
-              ),
-              Row(
-                children: [
+                  ),Text(
+                    "",
+                    style: Theme.of(context)
+                        .textTheme
+                        .labelLarge!
+                        .copyWith(color: Colors.grey),
+                  ),
+                ]),
+                TableRow(children: [
+                  
                   Text(
-                    form.numberOfDependents!.toString(),
+                    form.accountType!,
+                    style: Theme.of(context).textTheme.titleMedium,
+                  ),Text(
+                    '',
                     style: Theme.of(context).textTheme.titleMedium,
                   ),
-                ],
-              )
+                ]),
+              ]),
             ],
           ),
         ),

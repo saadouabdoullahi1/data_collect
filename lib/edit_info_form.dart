@@ -1,132 +1,59 @@
-import 'dart:developer';
-
 import 'package:data_collect/database.dart';
 import 'package:data_collect/main.dart';
 import 'package:data_collect/utils.dart';
 import 'package:drift/drift.dart' as drift;
-
 import 'package:flutter/material.dart';
-import 'package:image_picker/image_picker.dart';
-import 'dart:io';
-
 import 'package:intl/intl.dart';
-import 'package:path_provider/path_provider.dart';
 
-class InfoForm extends StatefulWidget {
-  const InfoForm({super.key});
+class EditInfoForm extends StatefulWidget {
+  final FormData form;
+  const EditInfoForm({super.key, required this.form});
 
   @override
-  State<InfoForm> createState() => _InfoFormState();
+  State<EditInfoForm> createState() => _EditInfoFormState();
 }
 
-class _InfoFormState extends State<InfoForm> {
+class _EditInfoFormState extends State<EditInfoForm> {
   final _formKey = GlobalKey<FormState>();
-  final TextEditingController locationController = TextEditingController();
-  final TextEditingController firstNameController = TextEditingController();
-  final TextEditingController lastNameController = TextEditingController();
-  final TextEditingController contactController = TextEditingController();
-  final TextEditingController ageController = TextEditingController();
-  final TextEditingController birthdateController = TextEditingController();
-  final TextEditingController numberOfDependentsController =
-      TextEditingController();
+  late final TextEditingController locationController;
+  late final TextEditingController firstNameController;
+  late final TextEditingController lastNameController;
+  late final TextEditingController contactController;
+  late final TextEditingController birthdateController;
+  late final TextEditingController numberOfDependentsController;
   DateTime? _selectedDate;
   int? neighborhood;
   int? accountType;
   int? sexe;
-  File? _selectedIdentityPhoto;
-  File? _selectedIdCard;
-
-  Future<void> _pickImage(
-      BuildContext context, bool fromCamera, bool isIdentityPhoto) async {
-    final ImagePicker picker = ImagePicker();
-    final XFile? image = await picker.pickImage(
-      source: fromCamera ? ImageSource.camera : ImageSource.gallery,
-      maxHeight: 531,
-      maxWidth: 531,
-      imageQuality: 50, 
-    );
-
-    if (image != null) {
-      final directory = await getApplicationDocumentsDirectory();
-      final imagesDir = Directory('${directory.path}/images');
-
-      if (!imagesDir.existsSync()) {
-        imagesDir.createSync();
-      }
-
-      final firstName = firstNameController.text.trim();
-      final lastName = lastNameController.text.trim();
-      final birthdate = birthdateController.text.trim();
-
-      if (firstName.isEmpty || lastName.isEmpty || birthdate.isEmpty) {
-        if (context.mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content:
-                  Text('Veuillez remplir Nom, Prénom et Date de Naissance'),
-            ),
-          );
-        }
-        return;
-      }
-
-      final fileName = isIdentityPhoto
-          ? '${firstName}_$lastName.jpg'.replaceAll(' ', '_')
-          : '${firstName}_${lastName}_carte.jpg'.replaceAll(' ', '_');
-
-      final newImagePath = '${imagesDir.path}/$fileName';
-
-      try {
-        final File newImage = await File(image.path).copy(newImagePath);
-
-        setState(() {
-          if (isIdentityPhoto) {
-            _selectedIdentityPhoto = newImage;
-          } else {
-            _selectedIdCard = newImage;
-          }
-        });
-
-        log('Image déplacée vers : $newImagePath');
-      } catch (e) {
-        log('Erreur lors de la sauvegarde de l\'image : $e');
-        if (context.mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Erreur lors de la sauvegarde de l\'image')),
-          );
-        }
-      }
-    }
-  }
 
   void _submitForm(BuildContext context) async {
     if (_formKey.currentState!.validate()) {
-      await db.insertForm(
-        FormCompanion(
-            quarter: drift.Value(switch (neighborhood!) {
-              0 => 'Lakouroussou',
-              1 => 'Yantala',
-              _ => 'Wadata'
-            }),
-            accountType: drift.Value(switch (accountType!) {
-              0 => 'Anfani'.toUpperCase(),
-              1 => 'Nawa'.toUpperCase(),
-              2 => 'Company'.toUpperCase(),
-              _ => 'Haske'.toUpperCase()
-            }),
-            firstName: drift.Value(firstNameController.text),
-            lastName: drift.Value(lastNameController.text),
-            phoneNumber:
-                drift.Value(contactController.text.replaceAll(' ', '').trim()),
-            location: drift.Value(locationController.text),
-            sexe: drift.Value((sexe == 0) ? 'M' : 'F'),
-            age: drift.Value(int.tryParse(
+      await (db.update(db.form)
+            ..where((tbl) =>
+                tbl.id.equals(widget.form.id)))
+          .write(FormCompanion(
+              quarter: drift.Value(switch (neighborhood!) {
+                0 => 'Lakouroussou',
+                1 => 'Yantala',
+                _ => 'Wadata'
+              }),
+              accountType: drift.Value(switch (accountType!) {
+                0 => 'Anfani'.toUpperCase(),
+                1 => 'Nawa'.toUpperCase(),
+                2 => 'Company'.toUpperCase(),
+                _ => 'Haske'.toUpperCase()
+              }),
+              firstName: drift.Value(firstNameController.text),
+              lastName: drift.Value(lastNameController.text),
+              phoneNumber: drift.Value(
+                  contactController.text.replaceAll(' ', '').trim()),
+              location: drift.Value(locationController.text),
+              sexe: drift.Value((sexe == 0) ? 'M' : 'F'),
+              age: drift.Value(int.tryParse(
                 (DateTime.now().year - _selectedDate!.year).toString().trim())),
-            birthdate: drift.Value(birthdateController.text),
-            urlImage: drift.Value(_selectedIdentityPhoto?.path),
-            urlIdCard: drift.Value(_selectedIdCard?.path),
-            createdAt: drift.Value(DateTime.now())),
-      );
+              birthdate: drift.Value(birthdateController.text),
+              createdAt: drift.Value(DateTime.now())));
+
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Formulaire soumis avec succès !')),
@@ -134,6 +61,33 @@ class _InfoFormState extends State<InfoForm> {
         Navigator.of(context).pop();
       }
     }
+  }
+
+  @override
+  void initState() {
+    locationController =
+        TextEditingController(text: widget.form.location.toString());
+    firstNameController =
+        TextEditingController(text: widget.form.firstName.toString());
+    lastNameController =
+        TextEditingController(text: widget.form.lastName.toString());
+    contactController =
+        TextEditingController(text: widget.form.phoneNumber.toString());
+    birthdateController =
+        TextEditingController(text: widget.form.birthdate.toString());
+       neighborhood = switch (widget.form.quarter) {
+      'Lakouroussou' => 0,
+      'Yantala' => 1,
+      _ => 0
+    };
+    accountType = switch (widget.form.accountType) {
+      'ANFANI' => 0,
+      'NAWA' => 1,
+      'COMPANY' => 2,
+      _ => 3
+    };
+    sexe = (widget.form.sexe == 'M') ? 0 : 1;
+    super.initState();
   }
 
   @override
@@ -294,6 +248,7 @@ class _InfoFormState extends State<InfoForm> {
                     return null;
                   },
                 ),
+
                 SizedBox(height: 10),
                 TextFormField(
                   controller: birthdateController,
@@ -304,13 +259,6 @@ class _InfoFormState extends State<InfoForm> {
                   ),
                   keyboardType: TextInputType.datetime,
                   readOnly: true,
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'SVP, entrez votre date de naissance';
-                    }
-                  
-                    return null;
-                  },
                   onTap: () async {
                     final date = await showDatePicker(
                       context: context,
@@ -328,76 +276,22 @@ class _InfoFormState extends State<InfoForm> {
                     }
                   },
                 ),
-                
-                SizedBox(height: 16),
-                Row(
-                  children: [
-                    Icon(Icons.photo, color: Theme.of(context).primaryColor),
-                    SizedBox(width: 8),
-                    Text('Photo d\'identité',
-                        style: TextStyle(fontWeight: FontWeight.bold)),
-                  ],
-                ),
-                Row(
-                  children: [
-                    ElevatedButton(
-                      onPressed: () => _pickImage(context, true, true),
-                      child: Row(
-                        children: [
-                          Icon(Icons.camera_alt),
-                          SizedBox(width: 8),
-                          Text('Prendre Image'),
-                        ],
-                      ),
-                    ),
-                    SizedBox(width: 10),
-                    _selectedIdentityPhoto == null
-                        ? Text('Aucune image prise')
-                        : Image.file(_selectedIdentityPhoto!, height: 150),
-                  ],
-                ),
-                SizedBox(height: 12),
-                Row(
-                  children: [
-                    Icon(Icons.card_membership,
-                        color: Theme.of(context).primaryColor),
-                    SizedBox(width: 8),
-                    Text('Pièce d\'identité',
-                        style: TextStyle(fontWeight: FontWeight.bold)),
-                  ],
-                ),
-                Row(
-                  children: [
-                    ElevatedButton(
-                      onPressed: () => _pickImage(context, true, false),
-                      child: Row(
-                        children: [
-                          Icon(Icons.camera_alt),
-                          SizedBox(width: 8),
-                          Text('Prendre Image'),
-                        ],
-                      ),
-                    ),
-                    SizedBox(width: 10),
-                    _selectedIdCard == null
-                        ? Text('Aucune image prise')
-                        : Image.file(_selectedIdCard!, height: 150),
-                  ],
-                ),
-                SizedBox(height: 48),
+
+                SizedBox(height: 38),
                 ElevatedButton(
                   style: ButtonStyle(
                     backgroundColor: WidgetStateProperty.all(
                         Theme.of(context).colorScheme.primaryContainer),
                     padding: WidgetStateProperty.all(
-                        EdgeInsets.symmetric(vertical: 14, horizontal: 48)),
+                        EdgeInsets.symmetric(vertical: 8, horizontal: 36)),
                   ),
                   onPressed: () => _submitForm(context),
                   child: Text(
-                    'Enregistrer',
+                    'Modifier',
                     style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                   ),
                 ),
+                SizedBox(height: 8),
               ],
             ),
           ),

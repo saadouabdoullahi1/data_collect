@@ -29,6 +29,12 @@ class $FormTable extends Form with TableInfo<$FormTable, FormData> {
   late final GeneratedColumn<String> location = GeneratedColumn<String>(
       'location', aliasedName, true,
       type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _accountTypeMeta =
+      const VerificationMeta('accountType');
+  @override
+  late final GeneratedColumn<String> accountType = GeneratedColumn<String>(
+      'account_type', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
   static const VerificationMeta _firstNameMeta =
       const VerificationMeta('firstName');
   @override
@@ -66,12 +72,6 @@ class $FormTable extends Form with TableInfo<$FormTable, FormData> {
   late final GeneratedColumn<String> birthdate = GeneratedColumn<String>(
       'birthdate', aliasedName, true,
       type: DriftSqlType.string, requiredDuringInsert: false);
-  static const VerificationMeta _numberOfDependentsMeta =
-      const VerificationMeta('numberOfDependents');
-  @override
-  late final GeneratedColumn<int> numberOfDependents = GeneratedColumn<int>(
-      'number_of_dependents', aliasedName, true,
-      type: DriftSqlType.int, requiredDuringInsert: false);
   static const VerificationMeta _createdAtMeta =
       const VerificationMeta('createdAt');
   @override
@@ -95,13 +95,13 @@ class $FormTable extends Form with TableInfo<$FormTable, FormData> {
         id,
         quarter,
         location,
+        accountType,
         firstName,
         lastName,
         phoneNumber,
         sexe,
         age,
         birthdate,
-        numberOfDependents,
         createdAt,
         urlImage,
         urlIdCard
@@ -126,6 +126,12 @@ class $FormTable extends Form with TableInfo<$FormTable, FormData> {
     if (data.containsKey('location')) {
       context.handle(_locationMeta,
           location.isAcceptableOrUnknown(data['location']!, _locationMeta));
+    }
+    if (data.containsKey('account_type')) {
+      context.handle(
+          _accountTypeMeta,
+          accountType.isAcceptableOrUnknown(
+              data['account_type']!, _accountTypeMeta));
     }
     if (data.containsKey('first_name')) {
       context.handle(_firstNameMeta,
@@ -154,12 +160,6 @@ class $FormTable extends Form with TableInfo<$FormTable, FormData> {
     if (data.containsKey('birthdate')) {
       context.handle(_birthdateMeta,
           birthdate.isAcceptableOrUnknown(data['birthdate']!, _birthdateMeta));
-    }
-    if (data.containsKey('number_of_dependents')) {
-      context.handle(
-          _numberOfDependentsMeta,
-          numberOfDependents.isAcceptableOrUnknown(
-              data['number_of_dependents']!, _numberOfDependentsMeta));
     }
     if (data.containsKey('created_at')) {
       context.handle(_createdAtMeta,
@@ -190,6 +190,8 @@ class $FormTable extends Form with TableInfo<$FormTable, FormData> {
           .read(DriftSqlType.string, data['${effectivePrefix}quarter']),
       location: attachedDatabase.typeMapping
           .read(DriftSqlType.string, data['${effectivePrefix}location']),
+      accountType: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}account_type']),
       firstName: attachedDatabase.typeMapping
           .read(DriftSqlType.string, data['${effectivePrefix}first_name']),
       lastName: attachedDatabase.typeMapping
@@ -202,8 +204,6 @@ class $FormTable extends Form with TableInfo<$FormTable, FormData> {
           .read(DriftSqlType.int, data['${effectivePrefix}age']),
       birthdate: attachedDatabase.typeMapping
           .read(DriftSqlType.string, data['${effectivePrefix}birthdate']),
-      numberOfDependents: attachedDatabase.typeMapping.read(
-          DriftSqlType.int, data['${effectivePrefix}number_of_dependents']),
       createdAt: attachedDatabase.typeMapping
           .read(DriftSqlType.dateTime, data['${effectivePrefix}created_at']),
       urlImage: attachedDatabase.typeMapping
@@ -223,13 +223,13 @@ class FormData extends DataClass implements Insertable<FormData> {
   final int id;
   final String? quarter;
   final String? location;
+  final String? accountType;
   final String? firstName;
   final String? lastName;
   final String? phoneNumber;
   final String sexe;
   final int? age;
   final String? birthdate;
-  final int? numberOfDependents;
   final DateTime? createdAt;
   final String? urlImage;
   final String? urlIdCard;
@@ -237,13 +237,13 @@ class FormData extends DataClass implements Insertable<FormData> {
       {required this.id,
       this.quarter,
       this.location,
+      this.accountType,
       this.firstName,
       this.lastName,
       this.phoneNumber,
       required this.sexe,
       this.age,
       this.birthdate,
-      this.numberOfDependents,
       this.createdAt,
       this.urlImage,
       this.urlIdCard});
@@ -256,6 +256,9 @@ class FormData extends DataClass implements Insertable<FormData> {
     }
     if (!nullToAbsent || location != null) {
       map['location'] = Variable<String>(location);
+    }
+    if (!nullToAbsent || accountType != null) {
+      map['account_type'] = Variable<String>(accountType);
     }
     if (!nullToAbsent || firstName != null) {
       map['first_name'] = Variable<String>(firstName);
@@ -272,9 +275,6 @@ class FormData extends DataClass implements Insertable<FormData> {
     }
     if (!nullToAbsent || birthdate != null) {
       map['birthdate'] = Variable<String>(birthdate);
-    }
-    if (!nullToAbsent || numberOfDependents != null) {
-      map['number_of_dependents'] = Variable<int>(numberOfDependents);
     }
     if (!nullToAbsent || createdAt != null) {
       map['created_at'] = Variable<DateTime>(createdAt);
@@ -297,6 +297,9 @@ class FormData extends DataClass implements Insertable<FormData> {
       location: location == null && nullToAbsent
           ? const Value.absent()
           : Value(location),
+      accountType: accountType == null && nullToAbsent
+          ? const Value.absent()
+          : Value(accountType),
       firstName: firstName == null && nullToAbsent
           ? const Value.absent()
           : Value(firstName),
@@ -311,9 +314,6 @@ class FormData extends DataClass implements Insertable<FormData> {
       birthdate: birthdate == null && nullToAbsent
           ? const Value.absent()
           : Value(birthdate),
-      numberOfDependents: numberOfDependents == null && nullToAbsent
-          ? const Value.absent()
-          : Value(numberOfDependents),
       createdAt: createdAt == null && nullToAbsent
           ? const Value.absent()
           : Value(createdAt),
@@ -333,13 +333,13 @@ class FormData extends DataClass implements Insertable<FormData> {
       id: serializer.fromJson<int>(json['id']),
       quarter: serializer.fromJson<String?>(json['quarter']),
       location: serializer.fromJson<String?>(json['location']),
+      accountType: serializer.fromJson<String?>(json['accountType']),
       firstName: serializer.fromJson<String?>(json['firstName']),
       lastName: serializer.fromJson<String?>(json['lastName']),
       phoneNumber: serializer.fromJson<String?>(json['phoneNumber']),
       sexe: serializer.fromJson<String>(json['sexe']),
       age: serializer.fromJson<int?>(json['age']),
       birthdate: serializer.fromJson<String?>(json['birthdate']),
-      numberOfDependents: serializer.fromJson<int?>(json['numberOfDependents']),
       createdAt: serializer.fromJson<DateTime?>(json['createdAt']),
       urlImage: serializer.fromJson<String?>(json['urlImage']),
       urlIdCard: serializer.fromJson<String?>(json['urlIdCard']),
@@ -352,13 +352,13 @@ class FormData extends DataClass implements Insertable<FormData> {
       'id': serializer.toJson<int>(id),
       'quarter': serializer.toJson<String?>(quarter),
       'location': serializer.toJson<String?>(location),
+      'accountType': serializer.toJson<String?>(accountType),
       'firstName': serializer.toJson<String?>(firstName),
       'lastName': serializer.toJson<String?>(lastName),
       'phoneNumber': serializer.toJson<String?>(phoneNumber),
       'sexe': serializer.toJson<String>(sexe),
       'age': serializer.toJson<int?>(age),
       'birthdate': serializer.toJson<String?>(birthdate),
-      'numberOfDependents': serializer.toJson<int?>(numberOfDependents),
       'createdAt': serializer.toJson<DateTime?>(createdAt),
       'urlImage': serializer.toJson<String?>(urlImage),
       'urlIdCard': serializer.toJson<String?>(urlIdCard),
@@ -369,13 +369,13 @@ class FormData extends DataClass implements Insertable<FormData> {
           {int? id,
           Value<String?> quarter = const Value.absent(),
           Value<String?> location = const Value.absent(),
+          Value<String?> accountType = const Value.absent(),
           Value<String?> firstName = const Value.absent(),
           Value<String?> lastName = const Value.absent(),
           Value<String?> phoneNumber = const Value.absent(),
           String? sexe,
           Value<int?> age = const Value.absent(),
           Value<String?> birthdate = const Value.absent(),
-          Value<int?> numberOfDependents = const Value.absent(),
           Value<DateTime?> createdAt = const Value.absent(),
           Value<String?> urlImage = const Value.absent(),
           Value<String?> urlIdCard = const Value.absent()}) =>
@@ -383,15 +383,13 @@ class FormData extends DataClass implements Insertable<FormData> {
         id: id ?? this.id,
         quarter: quarter.present ? quarter.value : this.quarter,
         location: location.present ? location.value : this.location,
+        accountType: accountType.present ? accountType.value : this.accountType,
         firstName: firstName.present ? firstName.value : this.firstName,
         lastName: lastName.present ? lastName.value : this.lastName,
         phoneNumber: phoneNumber.present ? phoneNumber.value : this.phoneNumber,
         sexe: sexe ?? this.sexe,
         age: age.present ? age.value : this.age,
         birthdate: birthdate.present ? birthdate.value : this.birthdate,
-        numberOfDependents: numberOfDependents.present
-            ? numberOfDependents.value
-            : this.numberOfDependents,
         createdAt: createdAt.present ? createdAt.value : this.createdAt,
         urlImage: urlImage.present ? urlImage.value : this.urlImage,
         urlIdCard: urlIdCard.present ? urlIdCard.value : this.urlIdCard,
@@ -401,6 +399,8 @@ class FormData extends DataClass implements Insertable<FormData> {
       id: data.id.present ? data.id.value : this.id,
       quarter: data.quarter.present ? data.quarter.value : this.quarter,
       location: data.location.present ? data.location.value : this.location,
+      accountType:
+          data.accountType.present ? data.accountType.value : this.accountType,
       firstName: data.firstName.present ? data.firstName.value : this.firstName,
       lastName: data.lastName.present ? data.lastName.value : this.lastName,
       phoneNumber:
@@ -408,9 +408,6 @@ class FormData extends DataClass implements Insertable<FormData> {
       sexe: data.sexe.present ? data.sexe.value : this.sexe,
       age: data.age.present ? data.age.value : this.age,
       birthdate: data.birthdate.present ? data.birthdate.value : this.birthdate,
-      numberOfDependents: data.numberOfDependents.present
-          ? data.numberOfDependents.value
-          : this.numberOfDependents,
       createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
       urlImage: data.urlImage.present ? data.urlImage.value : this.urlImage,
       urlIdCard: data.urlIdCard.present ? data.urlIdCard.value : this.urlIdCard,
@@ -423,13 +420,13 @@ class FormData extends DataClass implements Insertable<FormData> {
           ..write('id: $id, ')
           ..write('quarter: $quarter, ')
           ..write('location: $location, ')
+          ..write('accountType: $accountType, ')
           ..write('firstName: $firstName, ')
           ..write('lastName: $lastName, ')
           ..write('phoneNumber: $phoneNumber, ')
           ..write('sexe: $sexe, ')
           ..write('age: $age, ')
           ..write('birthdate: $birthdate, ')
-          ..write('numberOfDependents: $numberOfDependents, ')
           ..write('createdAt: $createdAt, ')
           ..write('urlImage: $urlImage, ')
           ..write('urlIdCard: $urlIdCard')
@@ -442,13 +439,13 @@ class FormData extends DataClass implements Insertable<FormData> {
       id,
       quarter,
       location,
+      accountType,
       firstName,
       lastName,
       phoneNumber,
       sexe,
       age,
       birthdate,
-      numberOfDependents,
       createdAt,
       urlImage,
       urlIdCard);
@@ -459,13 +456,13 @@ class FormData extends DataClass implements Insertable<FormData> {
           other.id == this.id &&
           other.quarter == this.quarter &&
           other.location == this.location &&
+          other.accountType == this.accountType &&
           other.firstName == this.firstName &&
           other.lastName == this.lastName &&
           other.phoneNumber == this.phoneNumber &&
           other.sexe == this.sexe &&
           other.age == this.age &&
           other.birthdate == this.birthdate &&
-          other.numberOfDependents == this.numberOfDependents &&
           other.createdAt == this.createdAt &&
           other.urlImage == this.urlImage &&
           other.urlIdCard == this.urlIdCard);
@@ -475,13 +472,13 @@ class FormCompanion extends UpdateCompanion<FormData> {
   final Value<int> id;
   final Value<String?> quarter;
   final Value<String?> location;
+  final Value<String?> accountType;
   final Value<String?> firstName;
   final Value<String?> lastName;
   final Value<String?> phoneNumber;
   final Value<String> sexe;
   final Value<int?> age;
   final Value<String?> birthdate;
-  final Value<int?> numberOfDependents;
   final Value<DateTime?> createdAt;
   final Value<String?> urlImage;
   final Value<String?> urlIdCard;
@@ -489,13 +486,13 @@ class FormCompanion extends UpdateCompanion<FormData> {
     this.id = const Value.absent(),
     this.quarter = const Value.absent(),
     this.location = const Value.absent(),
+    this.accountType = const Value.absent(),
     this.firstName = const Value.absent(),
     this.lastName = const Value.absent(),
     this.phoneNumber = const Value.absent(),
     this.sexe = const Value.absent(),
     this.age = const Value.absent(),
     this.birthdate = const Value.absent(),
-    this.numberOfDependents = const Value.absent(),
     this.createdAt = const Value.absent(),
     this.urlImage = const Value.absent(),
     this.urlIdCard = const Value.absent(),
@@ -504,13 +501,13 @@ class FormCompanion extends UpdateCompanion<FormData> {
     this.id = const Value.absent(),
     this.quarter = const Value.absent(),
     this.location = const Value.absent(),
+    this.accountType = const Value.absent(),
     this.firstName = const Value.absent(),
     this.lastName = const Value.absent(),
     this.phoneNumber = const Value.absent(),
     required String sexe,
     this.age = const Value.absent(),
     this.birthdate = const Value.absent(),
-    this.numberOfDependents = const Value.absent(),
     this.createdAt = const Value.absent(),
     this.urlImage = const Value.absent(),
     this.urlIdCard = const Value.absent(),
@@ -519,13 +516,13 @@ class FormCompanion extends UpdateCompanion<FormData> {
     Expression<int>? id,
     Expression<String>? quarter,
     Expression<String>? location,
+    Expression<String>? accountType,
     Expression<String>? firstName,
     Expression<String>? lastName,
     Expression<String>? phoneNumber,
     Expression<String>? sexe,
     Expression<int>? age,
     Expression<String>? birthdate,
-    Expression<int>? numberOfDependents,
     Expression<DateTime>? createdAt,
     Expression<String>? urlImage,
     Expression<String>? urlIdCard,
@@ -534,14 +531,13 @@ class FormCompanion extends UpdateCompanion<FormData> {
       if (id != null) 'id': id,
       if (quarter != null) 'quarter': quarter,
       if (location != null) 'location': location,
+      if (accountType != null) 'account_type': accountType,
       if (firstName != null) 'first_name': firstName,
       if (lastName != null) 'last_name': lastName,
       if (phoneNumber != null) 'phone_number': phoneNumber,
       if (sexe != null) 'sexe': sexe,
       if (age != null) 'age': age,
       if (birthdate != null) 'birthdate': birthdate,
-      if (numberOfDependents != null)
-        'number_of_dependents': numberOfDependents,
       if (createdAt != null) 'created_at': createdAt,
       if (urlImage != null) 'url_image': urlImage,
       if (urlIdCard != null) 'url_id_card': urlIdCard,
@@ -552,13 +548,13 @@ class FormCompanion extends UpdateCompanion<FormData> {
       {Value<int>? id,
       Value<String?>? quarter,
       Value<String?>? location,
+      Value<String?>? accountType,
       Value<String?>? firstName,
       Value<String?>? lastName,
       Value<String?>? phoneNumber,
       Value<String>? sexe,
       Value<int?>? age,
       Value<String?>? birthdate,
-      Value<int?>? numberOfDependents,
       Value<DateTime?>? createdAt,
       Value<String?>? urlImage,
       Value<String?>? urlIdCard}) {
@@ -566,13 +562,13 @@ class FormCompanion extends UpdateCompanion<FormData> {
       id: id ?? this.id,
       quarter: quarter ?? this.quarter,
       location: location ?? this.location,
+      accountType: accountType ?? this.accountType,
       firstName: firstName ?? this.firstName,
       lastName: lastName ?? this.lastName,
       phoneNumber: phoneNumber ?? this.phoneNumber,
       sexe: sexe ?? this.sexe,
       age: age ?? this.age,
       birthdate: birthdate ?? this.birthdate,
-      numberOfDependents: numberOfDependents ?? this.numberOfDependents,
       createdAt: createdAt ?? this.createdAt,
       urlImage: urlImage ?? this.urlImage,
       urlIdCard: urlIdCard ?? this.urlIdCard,
@@ -590,6 +586,9 @@ class FormCompanion extends UpdateCompanion<FormData> {
     }
     if (location.present) {
       map['location'] = Variable<String>(location.value);
+    }
+    if (accountType.present) {
+      map['account_type'] = Variable<String>(accountType.value);
     }
     if (firstName.present) {
       map['first_name'] = Variable<String>(firstName.value);
@@ -609,9 +608,6 @@ class FormCompanion extends UpdateCompanion<FormData> {
     if (birthdate.present) {
       map['birthdate'] = Variable<String>(birthdate.value);
     }
-    if (numberOfDependents.present) {
-      map['number_of_dependents'] = Variable<int>(numberOfDependents.value);
-    }
     if (createdAt.present) {
       map['created_at'] = Variable<DateTime>(createdAt.value);
     }
@@ -630,16 +626,168 @@ class FormCompanion extends UpdateCompanion<FormData> {
           ..write('id: $id, ')
           ..write('quarter: $quarter, ')
           ..write('location: $location, ')
+          ..write('accountType: $accountType, ')
           ..write('firstName: $firstName, ')
           ..write('lastName: $lastName, ')
           ..write('phoneNumber: $phoneNumber, ')
           ..write('sexe: $sexe, ')
           ..write('age: $age, ')
           ..write('birthdate: $birthdate, ')
-          ..write('numberOfDependents: $numberOfDependents, ')
           ..write('createdAt: $createdAt, ')
           ..write('urlImage: $urlImage, ')
           ..write('urlIdCard: $urlIdCard')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $GroupTable extends Group with TableInfo<$GroupTable, GroupData> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $GroupTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<int> id = GeneratedColumn<int>(
+      'id', aliasedName, false,
+      type: DriftSqlType.int, requiredDuringInsert: true);
+  @override
+  List<GeneratedColumn> get $columns => [id];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'group';
+  @override
+  VerificationContext validateIntegrity(Insertable<GroupData> instance,
+      {bool isInserting = false}) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    } else if (isInserting) {
+      context.missing(_idMeta);
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => const {};
+  @override
+  GroupData map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return GroupData(
+      id: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}id'])!,
+    );
+  }
+
+  @override
+  $GroupTable createAlias(String alias) {
+    return $GroupTable(attachedDatabase, alias);
+  }
+}
+
+class GroupData extends DataClass implements Insertable<GroupData> {
+  final int id;
+  const GroupData({required this.id});
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<int>(id);
+    return map;
+  }
+
+  GroupCompanion toCompanion(bool nullToAbsent) {
+    return GroupCompanion(
+      id: Value(id),
+    );
+  }
+
+  factory GroupData.fromJson(Map<String, dynamic> json,
+      {ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return GroupData(
+      id: serializer.fromJson<int>(json['id']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<int>(id),
+    };
+  }
+
+  GroupData copyWith({int? id}) => GroupData(
+        id: id ?? this.id,
+      );
+  GroupData copyWithCompanion(GroupCompanion data) {
+    return GroupData(
+      id: data.id.present ? data.id.value : this.id,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('GroupData(')
+          ..write('id: $id')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => id.hashCode;
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) || (other is GroupData && other.id == this.id);
+}
+
+class GroupCompanion extends UpdateCompanion<GroupData> {
+  final Value<int> id;
+  final Value<int> rowid;
+  const GroupCompanion({
+    this.id = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  GroupCompanion.insert({
+    required int id,
+    this.rowid = const Value.absent(),
+  }) : id = Value(id);
+  static Insertable<GroupData> custom({
+    Expression<int>? id,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  GroupCompanion copyWith({Value<int>? id, Value<int>? rowid}) {
+    return GroupCompanion(
+      id: id ?? this.id,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<int>(id.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('GroupCompanion(')
+          ..write('id: $id, ')
+          ..write('rowid: $rowid')
           ..write(')'))
         .toString();
   }
@@ -649,24 +797,25 @@ abstract class _$Database extends GeneratedDatabase {
   _$Database(QueryExecutor e) : super(e);
   $DatabaseManager get managers => $DatabaseManager(this);
   late final $FormTable form = $FormTable(this);
+  late final $GroupTable group = $GroupTable(this);
   @override
   Iterable<TableInfo<Table, Object?>> get allTables =>
       allSchemaEntities.whereType<TableInfo<Table, Object?>>();
   @override
-  List<DatabaseSchemaEntity> get allSchemaEntities => [form];
+  List<DatabaseSchemaEntity> get allSchemaEntities => [form, group];
 }
 
 typedef $$FormTableCreateCompanionBuilder = FormCompanion Function({
   Value<int> id,
   Value<String?> quarter,
   Value<String?> location,
+  Value<String?> accountType,
   Value<String?> firstName,
   Value<String?> lastName,
   Value<String?> phoneNumber,
   required String sexe,
   Value<int?> age,
   Value<String?> birthdate,
-  Value<int?> numberOfDependents,
   Value<DateTime?> createdAt,
   Value<String?> urlImage,
   Value<String?> urlIdCard,
@@ -675,13 +824,13 @@ typedef $$FormTableUpdateCompanionBuilder = FormCompanion Function({
   Value<int> id,
   Value<String?> quarter,
   Value<String?> location,
+  Value<String?> accountType,
   Value<String?> firstName,
   Value<String?> lastName,
   Value<String?> phoneNumber,
   Value<String> sexe,
   Value<int?> age,
   Value<String?> birthdate,
-  Value<int?> numberOfDependents,
   Value<DateTime?> createdAt,
   Value<String?> urlImage,
   Value<String?> urlIdCard,
@@ -704,6 +853,9 @@ class $$FormTableFilterComposer extends Composer<_$Database, $FormTable> {
   ColumnFilters<String> get location => $composableBuilder(
       column: $table.location, builder: (column) => ColumnFilters(column));
 
+  ColumnFilters<String> get accountType => $composableBuilder(
+      column: $table.accountType, builder: (column) => ColumnFilters(column));
+
   ColumnFilters<String> get firstName => $composableBuilder(
       column: $table.firstName, builder: (column) => ColumnFilters(column));
 
@@ -721,10 +873,6 @@ class $$FormTableFilterComposer extends Composer<_$Database, $FormTable> {
 
   ColumnFilters<String> get birthdate => $composableBuilder(
       column: $table.birthdate, builder: (column) => ColumnFilters(column));
-
-  ColumnFilters<int> get numberOfDependents => $composableBuilder(
-      column: $table.numberOfDependents,
-      builder: (column) => ColumnFilters(column));
 
   ColumnFilters<DateTime> get createdAt => $composableBuilder(
       column: $table.createdAt, builder: (column) => ColumnFilters(column));
@@ -753,6 +901,9 @@ class $$FormTableOrderingComposer extends Composer<_$Database, $FormTable> {
   ColumnOrderings<String> get location => $composableBuilder(
       column: $table.location, builder: (column) => ColumnOrderings(column));
 
+  ColumnOrderings<String> get accountType => $composableBuilder(
+      column: $table.accountType, builder: (column) => ColumnOrderings(column));
+
   ColumnOrderings<String> get firstName => $composableBuilder(
       column: $table.firstName, builder: (column) => ColumnOrderings(column));
 
@@ -770,10 +921,6 @@ class $$FormTableOrderingComposer extends Composer<_$Database, $FormTable> {
 
   ColumnOrderings<String> get birthdate => $composableBuilder(
       column: $table.birthdate, builder: (column) => ColumnOrderings(column));
-
-  ColumnOrderings<int> get numberOfDependents => $composableBuilder(
-      column: $table.numberOfDependents,
-      builder: (column) => ColumnOrderings(column));
 
   ColumnOrderings<DateTime> get createdAt => $composableBuilder(
       column: $table.createdAt, builder: (column) => ColumnOrderings(column));
@@ -802,6 +949,9 @@ class $$FormTableAnnotationComposer extends Composer<_$Database, $FormTable> {
   GeneratedColumn<String> get location =>
       $composableBuilder(column: $table.location, builder: (column) => column);
 
+  GeneratedColumn<String> get accountType => $composableBuilder(
+      column: $table.accountType, builder: (column) => column);
+
   GeneratedColumn<String> get firstName =>
       $composableBuilder(column: $table.firstName, builder: (column) => column);
 
@@ -819,9 +969,6 @@ class $$FormTableAnnotationComposer extends Composer<_$Database, $FormTable> {
 
   GeneratedColumn<String> get birthdate =>
       $composableBuilder(column: $table.birthdate, builder: (column) => column);
-
-  GeneratedColumn<int> get numberOfDependents => $composableBuilder(
-      column: $table.numberOfDependents, builder: (column) => column);
 
   GeneratedColumn<DateTime> get createdAt =>
       $composableBuilder(column: $table.createdAt, builder: (column) => column);
@@ -859,13 +1006,13 @@ class $$FormTableTableManager extends RootTableManager<
             Value<int> id = const Value.absent(),
             Value<String?> quarter = const Value.absent(),
             Value<String?> location = const Value.absent(),
+            Value<String?> accountType = const Value.absent(),
             Value<String?> firstName = const Value.absent(),
             Value<String?> lastName = const Value.absent(),
             Value<String?> phoneNumber = const Value.absent(),
             Value<String> sexe = const Value.absent(),
             Value<int?> age = const Value.absent(),
             Value<String?> birthdate = const Value.absent(),
-            Value<int?> numberOfDependents = const Value.absent(),
             Value<DateTime?> createdAt = const Value.absent(),
             Value<String?> urlImage = const Value.absent(),
             Value<String?> urlIdCard = const Value.absent(),
@@ -874,13 +1021,13 @@ class $$FormTableTableManager extends RootTableManager<
             id: id,
             quarter: quarter,
             location: location,
+            accountType: accountType,
             firstName: firstName,
             lastName: lastName,
             phoneNumber: phoneNumber,
             sexe: sexe,
             age: age,
             birthdate: birthdate,
-            numberOfDependents: numberOfDependents,
             createdAt: createdAt,
             urlImage: urlImage,
             urlIdCard: urlIdCard,
@@ -889,13 +1036,13 @@ class $$FormTableTableManager extends RootTableManager<
             Value<int> id = const Value.absent(),
             Value<String?> quarter = const Value.absent(),
             Value<String?> location = const Value.absent(),
+            Value<String?> accountType = const Value.absent(),
             Value<String?> firstName = const Value.absent(),
             Value<String?> lastName = const Value.absent(),
             Value<String?> phoneNumber = const Value.absent(),
             required String sexe,
             Value<int?> age = const Value.absent(),
             Value<String?> birthdate = const Value.absent(),
-            Value<int?> numberOfDependents = const Value.absent(),
             Value<DateTime?> createdAt = const Value.absent(),
             Value<String?> urlImage = const Value.absent(),
             Value<String?> urlIdCard = const Value.absent(),
@@ -904,13 +1051,13 @@ class $$FormTableTableManager extends RootTableManager<
             id: id,
             quarter: quarter,
             location: location,
+            accountType: accountType,
             firstName: firstName,
             lastName: lastName,
             phoneNumber: phoneNumber,
             sexe: sexe,
             age: age,
             birthdate: birthdate,
-            numberOfDependents: numberOfDependents,
             createdAt: createdAt,
             urlImage: urlImage,
             urlIdCard: urlIdCard,
@@ -934,9 +1081,113 @@ typedef $$FormTableProcessedTableManager = ProcessedTableManager<
     (FormData, BaseReferences<_$Database, $FormTable, FormData>),
     FormData,
     PrefetchHooks Function()>;
+typedef $$GroupTableCreateCompanionBuilder = GroupCompanion Function({
+  required int id,
+  Value<int> rowid,
+});
+typedef $$GroupTableUpdateCompanionBuilder = GroupCompanion Function({
+  Value<int> id,
+  Value<int> rowid,
+});
+
+class $$GroupTableFilterComposer extends Composer<_$Database, $GroupTable> {
+  $$GroupTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<int> get id => $composableBuilder(
+      column: $table.id, builder: (column) => ColumnFilters(column));
+}
+
+class $$GroupTableOrderingComposer extends Composer<_$Database, $GroupTable> {
+  $$GroupTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<int> get id => $composableBuilder(
+      column: $table.id, builder: (column) => ColumnOrderings(column));
+}
+
+class $$GroupTableAnnotationComposer extends Composer<_$Database, $GroupTable> {
+  $$GroupTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<int> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+}
+
+class $$GroupTableTableManager extends RootTableManager<
+    _$Database,
+    $GroupTable,
+    GroupData,
+    $$GroupTableFilterComposer,
+    $$GroupTableOrderingComposer,
+    $$GroupTableAnnotationComposer,
+    $$GroupTableCreateCompanionBuilder,
+    $$GroupTableUpdateCompanionBuilder,
+    (GroupData, BaseReferences<_$Database, $GroupTable, GroupData>),
+    GroupData,
+    PrefetchHooks Function()> {
+  $$GroupTableTableManager(_$Database db, $GroupTable table)
+      : super(TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$GroupTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$GroupTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$GroupTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback: ({
+            Value<int> id = const Value.absent(),
+            Value<int> rowid = const Value.absent(),
+          }) =>
+              GroupCompanion(
+            id: id,
+            rowid: rowid,
+          ),
+          createCompanionCallback: ({
+            required int id,
+            Value<int> rowid = const Value.absent(),
+          }) =>
+              GroupCompanion.insert(
+            id: id,
+            rowid: rowid,
+          ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .toList(),
+          prefetchHooksCallback: null,
+        ));
+}
+
+typedef $$GroupTableProcessedTableManager = ProcessedTableManager<
+    _$Database,
+    $GroupTable,
+    GroupData,
+    $$GroupTableFilterComposer,
+    $$GroupTableOrderingComposer,
+    $$GroupTableAnnotationComposer,
+    $$GroupTableCreateCompanionBuilder,
+    $$GroupTableUpdateCompanionBuilder,
+    (GroupData, BaseReferences<_$Database, $GroupTable, GroupData>),
+    GroupData,
+    PrefetchHooks Function()>;
 
 class $DatabaseManager {
   final _$Database _db;
   $DatabaseManager(this._db);
   $$FormTableTableManager get form => $$FormTableTableManager(_db, _db.form);
+  $$GroupTableTableManager get group =>
+      $$GroupTableTableManager(_db, _db.group);
 }

@@ -17,7 +17,7 @@ LazyDatabase _openConnection() {
   );
 }
 
-@DriftDatabase(tables: [Form])
+@DriftDatabase(tables: [Form,Group])
 class Database extends _$Database {
   Database() : super(_openConnection());
 

@@ -1,3 +1,4 @@
+import 'dart:developer';
 import 'dart:io';
 
 import 'package:archive/archive.dart';
@@ -20,6 +21,7 @@ void main() {
 
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
+
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
@@ -27,10 +29,144 @@ class MyApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(
-            seedColor: const Color.fromARGB(255, 218, 240, 25)),
+          seedColor: const Color.fromARGB(255, 218, 240, 25),
+        ),
         useMaterial3: true,
       ),
-      home: const MyHomePage(title: 'Collecte de données'),
+      // Vérification initiale sur la page de login
+      home: const LoginPage(),
+    );
+  }
+}
+
+class LoginPage extends StatefulWidget {
+  const LoginPage({super.key});
+
+  @override
+  State<LoginPage> createState() => _LoginPageState();
+}
+
+class _LoginPageState extends State<LoginPage> {
+  final TextEditingController groupController = TextEditingController();
+  bool isLoading = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _checkGroupExistence();
+  }
+
+  Future<void> _checkGroupExistence() async {
+    setState(() {
+      isLoading = true;
+    });
+
+    try {
+      final groupExists = await _doesGroupExist();
+      if (groupExists) {
+        // Redirection directe si le groupe existe déjà
+        if (context.mounted) {
+          Navigator.of(context).pushReplacement(
+            MaterialPageRoute(
+              builder: (context) =>
+                  const MyHomePage(title: 'Collecte de données'),
+            ),
+          );
+        }
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+            content: Text('Erreur lors de la vérification : ${e.toString()}')),
+      );
+    } finally {
+      setState(() {
+        isLoading = false;
+      });
+    }
+  }
+
+  Future<bool> _doesGroupExist() async {
+    bool isExist=(await db.select(db.group).get()).isNotEmpty;
+    if(isExist) {
+      return true;
+    }
+    return false;
+  }
+
+  Future<void> _submitGroup() async {
+    final groupName = groupController.text.trim();
+
+    if (groupName.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Veuillez entrer un nom de groupe')),
+      );
+      return;
+    }
+
+    setState(() {
+      isLoading = true;
+    });
+
+    try {
+      await db.into(db.group).insert(
+          GroupCompanion(id: drift.Value(int.parse(groupController.text))));
+
+      if (context.mounted) {
+        Navigator.of(context).pushReplacement(
+          MaterialPageRoute(
+            builder: (context) =>
+                const MyHomePage(title: 'Collecte de données'),
+          ),
+        );
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Erreur lors de l\'ajout : ${e.toString()}')),
+      );
+    } finally {
+      setState(() {
+        isLoading = false;
+      });
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: isLoading
+          ? const Center(child: CircularProgressIndicator())
+          : Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  const Text(
+                    ' Veuillez  ajouter le numéro de votre groupe  pour continuer.',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(fontSize: 16),
+                  ),
+                  const SizedBox(height: 16),
+                  TextFormField(
+                    controller: groupController,
+                    maxLength: 2,
+                    keyboardType: TextInputType.phone,
+                    decoration: const InputDecoration(counter:  SizedBox.shrink(),
+                      labelText: 'Numéro du groupe',
+                      border: OutlineInputBorder(),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  ElevatedButton(
+                    onPressed: isLoading ? null : _submitGroup,
+                    child: isLoading
+                        ? const CircularProgressIndicator(color: Colors.white)
+                        : const Text('Ajouter le groupe'),
+                  ),
+                ],
+              ),
+            ),
     );
   }
 }
@@ -46,11 +182,12 @@ class MyHomePage extends StatefulWidget {
 
 class _MyHomePageState extends State<MyHomePage> {
   bool isMultiSelection = false;
-  bool isLoading = false;
+  bool isEmptyList = true;
 
   Map<int, int> selectedIndex = {};
   Future<void> exportFormTableToCSV(Database db) async {
     final rows = await db.select(db.form).get();
+    final groupId=await db.select(db.group).getSingle();
     List<List<dynamic>> csvData = [
       [
         'Quartier',
@@ -61,10 +198,10 @@ class _MyHomePageState extends State<MyHomePage> {
         'Sexe',
         'Age',
         'Date de naissance',
-        'Nombre de personnes à charge',
         'Date d\'ajout',
-        'Image URL',
-        'Id card URL'
+        'Photo d\'identité',
+        'Carte',
+        'Groupe'
       ],
       ...rows.map((row) => [
             row.quarter,
@@ -75,34 +212,36 @@ class _MyHomePageState extends State<MyHomePage> {
             row.sexe,
             row.age,
             row.birthdate,
-            row.numberOfDependents,
             row.createdAt?.toIso8601String(),
-            row.urlImage!.replaceAll(
-                '/data/user/0/com.example.data_collect/app_flutter/', ''),
-            row.urlIdCard!.replaceAll(
-                '/data/user/0/com.example.data_collect/app_flutter/', ''),
+           (row.urlImage==null)?'': row.urlImage!.replaceAll(
+                '/data/user/0/com.example.data_collect/app_flutter/images/',
+                ''),
+            (row.urlIdCard==null)?'':row.urlIdCard!.replaceAll(
+                '/data/user/0/com.example.data_collect/app_flutter/images/',
+                ''),
+            '${groupId.id}'
           ])
     ];
 
-    String csv = const ListToCsvConverter().convert(csvData);
+    String csv = const ListToCsvConverter(textDelimiter: ";").convert(csvData);
     final directory = await getApplicationDocumentsDirectory();
-    final filePath = '${directory.path}/form_data.csv';
+    final filePath = '${directory.path}/liste.csv';
 
     final file = File(filePath);
     await file.writeAsString(csv);
 
-    print('Fichier CSV enregistré à : $filePath');
+    log('Fichier CSV enregistré à : $filePath');
   }
 
   Future<File> compressDataToZip() async {
     final directory = await getApplicationDocumentsDirectory();
-    final csvFilePath = '${directory.path}/form_data.csv';
+    final csvFilePath = '${directory.path}/liste.csv';
     final imagesDirPath = '${directory.path}/images';
     final archive = Archive();
     final csvFile = File(csvFilePath);
     if (await csvFile.exists()) {
       final csvBytes = await csvFile.readAsBytes();
-      archive.addFile(ArchiveFile('form_data.csv', csvBytes.length, csvBytes));
+      archive.addFile(ArchiveFile('liste.csv', csvBytes.length, csvBytes));
     }
 
     final imagesDir = Directory(imagesDirPath);
@@ -119,10 +258,10 @@ class _MyHomePageState extends State<MyHomePage> {
     }
     final zipEncoder = ZipEncoder();
     final zipData = zipEncoder.encode(archive);
-    final zipFilePath = '${directory.path}/form_data_and_images.zip';
+    final zipFilePath = '${directory.path}/terrafinance.zip';
     final zipFile = File(zipFilePath);
     await zipFile.writeAsBytes(zipData);
-    print('Fichier ZIP créé à : $zipFilePath');
+    log('Fichier ZIP créé à : $zipFilePath');
     return zipFile;
   }
 
@@ -137,12 +276,66 @@ class _MyHomePageState extends State<MyHomePage> {
     if (await file.exists()) {
       try {
         await file.delete();
-        print('Image deleted successfully: $filePath');
+        log('Image deleted successfully: $filePath');
       } catch (e) {
-        print('Error deleting the image: $e');
+        log('Error deleting the image: $e');
       }
     } else {
-      print('File does not exist: $filePath');
+      log('File does not exist: $filePath');
+    }
+  }
+
+  void showSnackBar(BuildContext context, String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(message), duration: Duration(seconds: 2)),
+    );
+  }
+
+  void showProgressDialog(BuildContext context, String message) {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => AlertDialog(
+        content: Row(
+          children: [
+            CircularProgressIndicator(),
+            SizedBox(width: 20),
+            Expanded(child: Text(message)),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Future<void> handleSharingProcessWithDialog(BuildContext context) async {
+    try {
+      showProgressDialog(context, 'Exportation des données CSV...');
+      print('numero 1');
+      await exportFormTableToCSV(db);
+      print('numero 2');
+      if (context.mounted) {
+        print('numero 3');
+        Navigator.pop(context);
+        showProgressDialog(context, 'Compression des données...');
+      }
+      print('numero 4');
+      if (context.mounted) {
+        print('numero 5');
+        Navigator.pop(context);
+        showProgressDialog(context, 'Partage des données...');
+      }
+      final zipFile = await compressDataToZip();
+      await Future.delayed(Duration(seconds: 1));
+      shareZipFile(zipFile);
+      if (context.mounted) {
+        Navigator.pop(context);
+        showSnackBar(context, 'Partage terminé avec succès !');
+      }
+    } catch (e) {
+      if (context.mounted) {
+        Navigator.pop(context);
+        showSnackBar(context, 'Erreur lors du processus : $e');
+      }
     }
   }
 
@@ -177,14 +370,23 @@ class _MyHomePageState extends State<MyHomePage> {
                   }
                 },
                 icon: Icon(Icons.delete)),
-          IconButton(
-            onPressed: () async {
-              await exportFormTableToCSV(db);
-              final zipFile = await compressDataToZip();
-              shareZipFile(zipFile);
+          StreamBuilder(
+            stream: db.form.select().watch(),
+            builder: (context, snapshot) {
+              final isListEmpty =
+                  !(snapshot.hasData && snapshot.data!.isNotEmpty);
+
+              return IconButton(
+                onPressed: isListEmpty
+                    ? null
+                    : () async {
+                        await handleSharingProcessWithDialog(context);
+                      },
+                icon: Icon(Icons.share),
+                color: isListEmpty ? Colors.grey : null,
+              );
             },
-            icon: Icon(Icons.share),
-          )
+          ),
         ],
       ),
       body: StreamBuilder(
